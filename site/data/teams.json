@@ -1,0 +1,143 @@
+{
+ "par": 36,
+ "allowances": {
+  "4": [
+   11,
+   8,
+   6,
+   5
+  ],
+  "5": [
+   10,
+   8,
+   5,
+   4,
+   3
+  ],
+  "6": [
+   9,
+   7,
+   5,
+   4,
+   3,
+   2
+  ]
+ },
+ "aliases": {
+  "La Raza": "Spanish Latinos"
+ },
+ "teams": [
+  {
+   "name": "18Pars",
+   "players": [
+    "Brandon Hadfield",
+    "Ryan Haack",
+    "William Jeang",
+    "Mike Kuhl"
+   ],
+   "hcp": 4.6
+  },
+  {
+   "name": "Spanish Latinos",
+   "players": [
+    "Angel Cueva",
+    "Jeronimo Ortiz",
+    "Eugenio Caballero",
+    "Curro Terron",
+    "Patricio Ramirez",
+    "Mauricio Interiano"
+   ],
+   "hcp": 3.4
+  },
+  {
+   "name": "That’ll Play",
+   "players": [
+    "BK Kwasniak",
+    "Logan Dosan",
+    "Rohan Datta",
+    "Colin Duffy"
+   ],
+   "hcp": 3.8
+  },
+  {
+   "name": "Donuts No Dunkin",
+   "players": [
+    "Kevin Lenzi",
+    "David Nguyen",
+    "TJ Cahill",
+    "Rob Brower"
+   ],
+   "hcp": 5.6
+  },
+  {
+   "name": "Pimp My Drive",
+   "players": [
+    "Nicholas Casetti",
+    "Jordan Liles",
+    "Alex Stoneman"
+   ],
+   "hcp": null
+  },
+  {
+   "name": "big back no big brain",
+   "players": [
+    "Yaqi Li",
+    "Michael Wang",
+    "Olivia Kim",
+    "Aaron Kim"
+   ],
+   "hcp": 6.5
+  },
+  {
+   "name": "The Visiting Swingers",
+   "players": [
+    "Anthony Dutruy",
+    "Maximilian Hauser",
+    "Alexandre Kiss"
+   ],
+   "hcp": null
+  },
+  {
+   "name": "Latin mafia 27",
+   "players": [
+    "Alvaro Elizondo",
+    "Manuel Valdes",
+    "Jose Pablo Sanchez",
+    "Santos Quirno",
+    "Rafa Salama"
+   ],
+   "hcp": 4.1
+  },
+  {
+   "name": "MSRED Golf",
+   "players": [
+    "Jorge Mejia",
+    "Alejandro Lascurain",
+    "Jacob Ordnder",
+    "Charlie Brown"
+   ],
+   "hcp": 3.3
+  },
+  {
+   "name": "Danger Close",
+   "players": [
+    "Ben Kondrup",
+    "Tyler Byrne",
+    "Danny Cate",
+    "Drew Sullivan",
+    "Lucas Chory"
+   ],
+   "hcp": 5.0
+  },
+  {
+   "name": "MIT Golf Officers",
+   "players": [
+    "Hugh",
+    "Zane",
+    "Nishant",
+    "Eric"
+   ],
+   "hcp": null
+  }
+ ]
+}

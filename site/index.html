@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MIT Sim League</title>
+<meta name="description" content="MIT Golf Club Simulator League — standings, handicaps and playoff bracket.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: poster-style single column — gold deadline band, title, course banner, status tiles, league table, bracket, then rounds + rules side by side. Single dark look, matching the printed poster. */
+:root{
+  color-scheme:dark;
+  --bg:#101012; --panel:#1a1a1d; --panel-2:#232327; --line:#2f2f34; --line-soft:#26262a;
+  --text:#f5f4f0; --muted:#a3a3aa; --faint:#707078;
+  --red:#a31f34; --red-dk:#6d1222; --red-hi:#e04a62; --red-soft:rgba(224,74,98,.14); --red-txt:#ff8fa0;
+  --gold:#f2c14e; --gold-lt:#ffd978; --gold-soft:rgba(242,193,78,.14);
+  --green:#17402b; --green-md:#1f5a3c; --green-dk:#0e2a1b; --green-hi:#6fd09a; --green-txt:#dff5e8;
+  --cream:#efe6cf; --ink:#2a1006; --wanted:#6b1020; --white:#ffffff;
+  --radius:14px;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font:400 16px/1.5 var(--body);background-color:var(--bg);background-image:
+  radial-gradient(900px 520px at 92% -6%, rgba(163,31,52,.42), transparent 62%),
+  radial-gradient(760px 520px at -12% 34%, rgba(23,64,43,.55), transparent 60%),
+  radial-gradient(700px 500px at 110% 78%, rgba(242,193,78,.08), transparent 60%)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0;line-height:1;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+
+.topbar{background:linear-gradient(90deg,var(--gold),var(--gold-lt) 50%,var(--gold));color:var(--ink);text-align:center;padding-block:10px;font:800 16px/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase}
+
+header{padding-block:34px 20px;position:relative}
+.kicker{font:700 13px/1 var(--display);letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+h1{font-weight:800;font-size:clamp(50px,10vw,96px);margin-top:12px}
+h1 .r{color:var(--red-hi);display:block}
+.badge{position:absolute;right:0;top:34px;width:128px;height:128px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:rotate(9deg);box-shadow:0 0 0 6px var(--gold-soft),0 10px 30px rgba(0,0,0,.4);font-family:var(--display);text-transform:uppercase}
+.badge small{font:700 13px/1.05 var(--display);letter-spacing:.06em}
+.badge b{font:800 italic 34px/1 var(--display);margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--text)}
+.chip.r{border-color:rgba(224,74,98,.5);color:var(--red-txt)}
+.chip.g{border-color:rgba(111,208,154,.45);color:var(--green-hi)}
+.chip.y{border-color:rgba(242,193,78,.5);color:var(--gold)}
+
+.course{display:flex;align-items:center;gap:18px;margin:6px 0 16px;padding:16px 20px;border-radius:var(--radius);background:linear-gradient(115deg,var(--green-md),var(--green) 45%,var(--green-dk));border:1px solid #2f7a52}
+.course svg{flex:none}
+.course .k{font:700 12px/1 var(--display);letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.course .n{font:800 28px/1.05 var(--display);text-transform:uppercase;margin-top:5px}
+.course .b{font-size:14px;color:var(--green-txt);margin-top:3px}
+
+.status{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:0 0 30px}
+.stat{border-radius:var(--radius);padding:14px 16px;border:1px solid transparent;min-width:0}
+.stat .lbl{font:700 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
+.stat .val{font:800 30px/1.1 var(--display);margin-top:8px}
+.stat .sub{font-size:13px;margin-top:2px;opacity:.85}
+.stat.phase{background:linear-gradient(135deg,#c02a43,var(--red) 50%,var(--red-dk));color:var(--white)}
+.stat.phase .lbl{color:#ffd9df}
+.stat.phase.final{background:linear-gradient(135deg,var(--gold-lt),var(--gold));color:var(--ink)}
+.stat.phase.final .lbl{color:#5a420c}
+.stat.t{background:linear-gradient(135deg,var(--green-md),var(--green-dk));border-color:#2c6e4b}
+.stat.t .lbl{color:var(--green-hi)}
+.stat.rd{background:linear-gradient(135deg,rgba(242,193,78,.22),rgba(242,193,78,.06));border-color:rgba(242,193,78,.35)}
+.stat.rd .lbl,.stat.rd .val{color:var(--gold)}
+.stat.ln{background:var(--cream);color:var(--ink)}
+.stat.ln .lbl,.stat.ln .val{color:var(--red)}
+
+.sec{margin:0 0 44px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+h2{font-weight:800;font-size:32px;display:flex;align-items:center;gap:12px}
+h2::before{content:"";width:8px;height:26px;border-radius:3px;background:var(--accent)}
+.sec.gold{--accent:var(--gold)} .sec.red{--accent:var(--red-hi)}
+.sec-head .meta{font-size:13px;color:var(--muted)}
+
+.table-card{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--radius);overflow-x:auto;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+table{width:100%;border-collapse:collapse}
+thead{background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+th{white-space:nowrap;font:700 12px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding:14px 12px;border-bottom:2px solid var(--gold)}
+th.l,td.l{text-align:left}
+td{padding:12px;text-align:right;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+td.pos{width:60px;text-align:left;padding-left:18px;font:800 24px/1 var(--display);color:var(--faint);position:relative}
+tr.bye{background:linear-gradient(90deg,rgba(242,193,78,.16),rgba(242,193,78,.02) 70%)}
+tr.wc{background:linear-gradient(90deg,rgba(224,74,98,.13),rgba(224,74,98,.01) 70%)}
+tr.bye td.pos{color:var(--gold)}
+tr.wc td.pos{color:var(--red-hi)}
+tr.bye td.pos::before,tr.wc td.pos::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+tr.bye td.pos::before{background:var(--gold)}
+tr.wc td.pos::before{background:var(--red-hi)}
+.team{font-weight:600;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.players{font-size:13px;color:var(--muted);margin-top:2px}
+.tag{font:700 11px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;border-radius:4px;padding:4px 6px;white-space:nowrap}
+.tag.bye{background:var(--gold);color:var(--ink)}
+.tag.wc{background:var(--red);color:var(--white)}
+.tag.new{background:var(--green-hi);color:var(--green-dk)}
+.tag.wanted{background:var(--cream);color:var(--wanted);font-family:Georgia,"Times New Roman",serif;letter-spacing:.06em}
+.tag.warn{background:var(--panel-2);color:var(--muted)}
+.rounds{display:inline-flex;gap:4px;vertical-align:middle}
+.dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--faint)}
+.dot.on{background:var(--green-hi);border-color:var(--green-hi)}
+.net{font:800 26px/1 var(--display)}
+tr.bye .net{color:var(--gold)}
+.topar{font:700 15px/1 var(--display);color:var(--muted)}
+.topar.under{color:var(--green-hi)}
+.topar.over{color:var(--red-txt)}
+.r-best{color:var(--text);font-weight:600}
+.r-off{color:var(--faint)}
+.r-x{color:var(--faint);text-decoration:line-through}
+tr.cut td{padding:0;border-bottom:0}
+.cutline{display:flex;align-items:center;padding:6px 16px;background:repeating-linear-gradient(90deg,var(--red-hi) 0 10px,transparent 10px 18px) center/100% 2px no-repeat}
+.cutline span{background:var(--panel);padding:0 10px;margin:0 auto;font:700 12px/1 var(--display);letter-spacing:.18em;text-transform:uppercase;color:var(--red-txt)}
+.cutline.yet{background-image:repeating-linear-gradient(90deg,var(--line) 0 10px,transparent 10px 18px)}
+.cutline.yet span{color:var(--muted)}
+tr.yet .team{color:var(--text);opacity:.9}
+tr.yet .net{color:var(--faint)}
+.empty{padding:30px 16px;text-align:center;color:var(--muted)}
+
+.bracket{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:center}
+.col-h{font:700 12px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px}
+.col-h.r{color:var(--red-txt)} .col-h.g{color:var(--green-hi)} .col-h.y{color:var(--gold)}
+.col{display:flex;flex-direction:column;gap:18px}
+.match{background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.match .mh{padding:8px 12px;font:700 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
+.match.w .mh{background:var(--red);color:var(--white)}
+.match.s .mh{background:var(--green);color:var(--green-txt)}
+.match.final .mh{background:var(--gold);color:var(--ink)}
+.side{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line-soft)}
+.match .mh + .side{border-top:0}
+.side .sd{font:800 14px/1 var(--display);color:var(--muted);width:24px}
+.side .nm{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side.tbd .nm{color:var(--faint);font-weight:500;font-style:italic}
+.side.win{background:var(--gold-soft)}
+.side.win .nm::after{content:" ✓";color:var(--gold)}
+.side.lose .nm{color:var(--faint);text-decoration:line-through}
+.match .ms{padding:7px 12px 9px;font-size:12px;color:var(--muted);border-top:1px solid var(--line-soft)}
+.match.final{border:2px solid var(--gold);box-shadow:0 0 0 5px var(--gold-soft),0 10px 30px rgba(0,0,0,.3)}
+.trophy{display:flex;justify-content:center;margin-bottom:10px}
+.champ{margin-top:12px;text-align:center;font:800 28px/1.1 var(--display);text-transform:uppercase;color:var(--gold)}
+.champ small{display:block;font:700 12px/1 var(--display);letter-spacing:.2em;color:var(--muted);margin-bottom:6px}
+.note{font-size:13px;color:var(--muted);margin-top:16px}
+
+.sec.green{--accent:var(--green-hi)}
+.hgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:18px;align-items:start}
+.card.y{--accent:var(--gold)}
+.explain p{margin:0 0 12px;font-size:15px;max-width:65ch}
+.explain .eg{font-size:14px;color:var(--muted)}
+.explain .eg b{color:var(--gold)}
+.allow-wrap{overflow-x:auto;margin:4px 0 14px;border:1px solid var(--line-soft);border-radius:10px}
+.allow th{border-bottom:1px solid var(--line);padding:10px;background:var(--panel-2)}
+.allow td{padding:9px 10px;font-size:14px}
+.allow td.num{color:var(--gold);font-weight:600}
+.contact{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding:14px;border-radius:10px;background:var(--red-soft);border:1px solid rgba(224,74,98,.35);font-size:15px}
+.mail{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.addr{font:700 18px/1.2 var(--body);color:var(--text);user-select:all;word-break:break-all}
+.btn{font:600 13px/1 var(--body);color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.btn:hover,.btn:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+.calc .hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.inputs label{display:flex;flex-direction:column;gap:4px;font:700 11px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.inputs input{width:100%;font:600 18px/1 var(--body);color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+.inputs input:focus{outline:none;border-color:var(--green-hi);box-shadow:0 0 0 3px rgba(111,208,154,.2)}
+.result{margin-top:14px;padding:14px;border-radius:10px;background:var(--green-dk);border:1px solid #2c6e4b}
+.steps{list-style:none;margin:0 0 10px;padding:0;font-size:14px;color:var(--green-txt)}
+.steps li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed rgba(111,208,154,.2)}
+.totrow{display:flex;justify-content:space-between;align-items:center;font:700 13px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--green-hi)}
+.tot{font:800 34px/1 var(--display);color:var(--gold)}
+.tot.tbd{color:var(--faint)}
+.result .why{font-size:13px;color:var(--green-txt);margin-top:6px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{background:var(--panel);border:1px solid var(--line-soft);border-top:4px solid var(--accent);border-radius:var(--radius);padding:18px 20px}
+.card.g{--accent:var(--green-hi)} .card.r{--accent:var(--red-hi)}
+.card h3{font-size:22px;font-weight:800;margin-bottom:12px}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:14px}
+.feed li:last-child{border-bottom:0}
+.feed .when{color:var(--muted);white-space:nowrap}
+.feed .nt{color:var(--green-hi)}
+.rules{list-style:none;margin:0;padding:0;counter-reset:r;font-size:14px;color:var(--text)}
+.rules li{counter-increment:r;display:flex;gap:10px;margin:8px 0;align-items:flex-start}
+.rules li::before{content:counter(r);flex:none;width:22px;height:22px;border-radius:50%;background:var(--red);color:var(--white);font:800 13px/22px var(--display);text-align:center}
+.rules li:nth-child(even)::before{background:var(--green)}
+.rules li:nth-child(3n)::before{background:var(--gold);color:var(--ink)}
+.rules b{color:var(--text)}
+
+footer{border-top:3px solid var(--red);margin-top:20px;padding-block:22px 40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+footer b{font:800 18px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+footer b span{color:var(--red-hi)}
+
+@media (max-width:820px){
+  .badge{width:104px;height:104px;top:26px}
+  .badge b{font-size:28px}
+  .badge small{font-size:11px}
+  .status{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stat .val{font-size:24px}
+  .status .phase{grid-column:1/-1}
+  .bracket,.two,.hgrid{grid-template-columns:minmax(0,1fr)}
+  .hide-m{display:none}
+}
+@media (max-width:520px){
+  .topbar{font-size:14px}
+  header{padding-top:24px}
+  .badge{display:none}
+  .course{padding:14px;gap:12px}
+  .course .n{font-size:22px}
+  .course svg{width:40px;height:40px}
+  h2{font-size:28px}
+  td,th{padding:10px 8px}
+  td.pos{width:42px;padding-left:12px;font-size:20px}
+  .net{font-size:22px}
+  .hide-s,.players{display:none}
+  .stat{padding:12px}
+  .inputs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat .sub{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stat.phase .sub{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar" hidden><div class="wrap">Last day to sign up · Sunday, Nov 1</div></div>
+<div class="wrap">
+  <header>
+    <div class="kicker">MIT Golf Club · Fall 2026</div>
+    <h1>Simulator <span class="r">League</span></h1>
+    <div class="badge" id="badge" hidden><small>Sign-ups<br>close</small><b>Nov 1</b></div>
+    <div class="chips">
+      <span class="chip r">Teams of 4–6</span>
+      <span class="chip g">9-hole scramble</span>
+      <span class="chip y">Handicapped</span>
+      <span class="chip">All genders · all skill levels</span>
+      <span class="chip">@ Z Center</span>
+    </div>
+  </header>
+
+  <div class="course">
+    <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+      <g fill="#6fd09a">
+        <circle cx="19" cy="16" r="9"/><circle cx="33" cy="16" r="9"/>
+        <circle cx="14" cy="28" r="9"/><circle cx="26" cy="21" r="5"/>
+        <circle cx="38" cy="28" r="9"/><circle cx="21" cy="33" r="8"/><circle cx="31" cy="33" r="8"/>
+      </g>
+      <path d="M26 30 C27 38 30 44 36 49" stroke="#6fd09a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="k">Qualifying course</div>
+      <div class="n">Adare Manor · Back Nine</div>
+      <div class="b">The “Augusta of Ireland” and host of the 2027 Ryder Cup. Par 36.</div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <section class="sec gold">
+    <div class="sec-head">
+      <h2>Qualifying standings</h2>
+      <div class="meta" id="updated"></div>
+    </div>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="l">Pos</th>
+            <th class="l">Team</th>
+            <th>Rounds</th>
+            <th class="hide-s">Gross</th>
+            <th class="hide-s">Hcp</th>
+            <th>Net</th>
+            <th class="hide-m">To par</th>
+          </tr>
+        </thead>
+        <tbody id="standings"><tr><td colspan="7" class="empty">Loading the league table…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec red">
+    <div class="sec-head">
+      <h2>Playoff bracket</h2>
+      <div class="meta" id="bracketMeta"></div>
+    </div>
+    <div class="bracket" id="bracket"></div>
+    <div class="note">Seeds set by qualifying scores. In each wildcard the higher seed (#3 or #4) picks the course. All playoff matches 8–10 PM @ Z Center. The final's course is chosen by audience vote.</div>
+  </section>
+
+  <section class="sec green" id="handicaps">
+    <div class="sec-head"><h2>How team handicaps work</h2></div>
+    <div class="hgrid">
+      <div class="card y explain">
+        <p>Each player's handicap is multiplied by an allowance, going from the lowest handicap on the roster to the highest. Add those up and round to one decimal place: that's your team handicap, and those strokes come off your team's gross score.</p>
+        <div class="allow-wrap">
+          <table class="allow">
+            <thead><tr><th class="l">Team size</th><th>Lowest</th><th>2nd</th><th>3rd</th><th>4th</th><th>5th</th><th>6th</th></tr></thead>
+            <tbody id="allowRows"></tbody>
+          </table>
+        </div>
+        <p class="eg">Example: four players on 10, 14, 18 and 22 get 10×11% + 14×8% + 18×6% + 22×5% = <b>4.4 strokes</b>.</p>
+        <p>Teams with fewer than 4 players show <b>TBD</b> until the roster is complete. No handicap? The officers will estimate one for you.</p>
+        <div class="contact">
+          <div>Think your team's handicap has been miscalculated? Get in touch with Hugh.</div>
+          <div class="mail"><span class="addr" id="email">hoconnor@mit.edu</span><button class="btn" id="copyEmail" type="button">Copy email</button></div>
+        </div>
+      </div>
+      <div class="card g calc">
+        <h3>Handicap calculator</h3>
+        <p class="hint">Enter each player's handicap (4–6 players). The example numbers are there to show how it works; replace them with your team's.</p>
+        <div class="inputs" id="calcInputs"></div>
+        <div class="result" id="calcOut" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec two">
+    <div class="card g">
+      <h3>Latest rounds</h3>
+      <ul class="feed" id="feed"></ul>
+    </div>
+    <div class="card r">
+      <h3>How qualifying works</h3>
+      <ol class="rules">
+        <li><span>Teams of <b>4–6</b>. Three play each hole; sub players between holes.</span></li>
+        <li><span><b>Scramble:</b> everyone hits, pick the best shot, all play from there.</span></li>
+        <li><span>Play up to <b>2 rounds</b> of Adare Manor · Back Nine. Only your better round counts.</span></li>
+        <li><span><b>Net = gross − team handicap.</b> Ties go to the lower gross, then the team that posted first.</span></li>
+        <li><span><b>Top 6</b> make the playoffs; seeds 1 and 2 skip straight to the semis.</span></li>
+        <li><span>Submit every round on the score form with a photo of the scorecard. The officers update this table.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <b>MIT Golf Club · <span>Sim League</span></b>
+    <div>Questions or a score that looks wrong? Message the MIT Golf officers.</div>
+  </footer>
+</div>
+
+<script>
+/* League data lives in data/teams.json (teams + team handicaps, updated by the officers)
+   and data/scores.json (copied from the score form every hour by a GitHub Action). */
+let DATA = null;
+
+const RULES = {
+  maxRounds: 2, playoffSpots: 6, byes: 2, officersTeam: "MIT Golf Officers",
+  signupCloses: new Date("2026-11-01T23:59:00-05:00"),
+  qualifyingCloses: new Date("2026-11-29T23:59:00-05:00"),
+  playoffsStart: new Date("2026-11-30T00:00:00-05:00"),
+  finalWeek: new Date("2026-12-07T00:00:00-05:00"),
+};
+
+function render(){
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const key = (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const r1 = (n) => Math.round(n * 10) / 10;
+const fmt = (n) => (n == null || !isFinite(n)) ? "–" : String(r1(n));
+const hcpTxt = (h) => h == null ? "TBD" : h ? "−" + h.toFixed(1) : "0";
+const now = new Date();
+
+/* ---------- Standings ---------- */
+/* Form answers are stored exactly as submitted; read them here.
+   "33 (-3)" → 33 · "E (36)" → 36 · "-4" → par − 4 · "+2" → par + 2 */
+function parseScore(raw){
+  const s = String(raw ?? "").replace(/[−–]/g, "-").trim().toUpperCase();
+  const nums = (s.match(/[+-]?\d+/g) || []).map(Number);
+  const gross = nums.find(n => n >= 20);
+  if (gross != null) return gross;
+  if (/^E\b|^EVEN/.test(s)) return DATA.par;
+  if (nums.length) return DATA.par + nums[0];
+  return null;
+}
+function parseDate(raw){
+  const s = String(raw ?? "").trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  const t = new Date(s); return isNaN(t) ? new Date(0) : t;
+}
+const ALIASES = new Map(Object.entries(DATA.aliases || {}).map(([k, v]) => [key(k), v]));
+const teams = new Map(DATA.teams.map(t => [key(t.name), { ...t, rounds: [] }]));
+DATA.scores.forEach((s, i) => {
+  const gross = parseScore(s.score); if (gross == null) return;
+  if (parseDate(s.at) > RULES.qualifyingCloses) return;          // submitted after qualifying closed
+  const name = ALIASES.get(key(s.team)) || s.team;
+  let t = teams.get(key(name));
+  if (!t){ t = { name: s.team, players: [], hcp: null, rounds: [], unknown: true }; teams.set(key(name), t); }
+  t.rounds.push({ gross, at: parseDate(s.at), order: i });
+});
+const played = [], waiting = [];
+for (const t of teams.values()){
+  t.rounds.sort((a, b) => a.at - b.at || a.order - b.order);
+  t.rounds.forEach((r, i) => r.counted = i < RULES.maxRounds);
+  const counted = t.rounds.filter(r => r.counted);
+  if (!counted.length){ waiting.push(t); continue; }
+  t.best = counted.reduce((a, b) => b.gross < a.gross ? b : a);
+  t.best.best = true;
+  t.gross = t.best.gross; t.net = r1(t.gross - (t.hcp ?? 0));
+  played.push(t);
+}
+// Ties: lower net → lower gross → first to post the round
+played.sort((a, b) => a.net - b.net || a.gross - b.gross || a.best.at - b.best.at);
+played.forEach((t, i) => {
+  t.seed = i + 1;
+  const tied = played.filter(x => x.net === t.net);
+  t.pos = (tied.length > 1 ? "T" : "") + (played.indexOf(tied[0]) + 1);
+});
+waiting.sort((a, b) => a.name.localeCompare(b.name));
+
+const isOfficers = (t) => key(t.name) === key(RULES.officersTeam);
+const baseTags = (t) => [
+  isOfficers(t) ? `<span class="tag wanted">Wanted</span>` : "",
+  t.unknown ? `<span class="tag warn">Check team name</span>` : t.hcp == null ? `<span class="tag warn">Hcp TBD</span>` : "",
+].join(" ");
+const dots = (n) => Array.from({ length: RULES.maxRounds }, (_, k) => `<span class="dot${k < n ? " on" : ""}"></span>`).join("");
+
+const rows = [];
+played.forEach((t) => {
+  const cls = t.seed <= RULES.byes ? "bye" : t.seed <= RULES.playoffSpots ? "wc" : "";
+  const fresh = isRecent(t.rounds[t.rounds.length - 1].at);
+  const tags = [
+    fresh ? `<span class="tag new">New</span>` : "",
+    cls === "bye" ? `<span class="tag bye">Bye to semis</span>` : cls === "wc" ? `<span class="tag wc">Wildcard</span>` : "",
+    baseTags(t),
+  ].join(" ");
+  const roundsTxt = t.rounds.map(r => `<span class="${!r.counted ? "r-x" : r.best ? "r-best" : "r-off"}">${fmt(r.gross)}</span>`).join(" · ");
+  const tp = r1(t.net - DATA.par);
+  rows.push(`<tr class="${cls}">
+    <td class="pos l">${esc(t.pos)}</td>
+    <td class="l"><div class="team">${esc(t.name)} ${tags}</div><div class="players">${t.players.map(esc).join(" · ")}</div></td>
+    <td class="num"><span class="rounds">${dots(t.rounds.filter(r => r.counted).length)}</span><div class="players">${roundsTxt}</div></td>
+    <td class="hide-s num">${fmt(t.gross)}</td>
+    <td class="hide-s num">${hcpTxt(t.hcp)}</td>
+    <td class="num"><span class="net">${fmt(t.net)}</span></td>
+    <td class="hide-m num"><span class="topar${tp < 0 ? " under" : tp > 0 ? " over" : ""}">${tp === 0 ? "E" : (tp > 0 ? "+" : "−") + fmt(Math.abs(tp))}</span></td>
+  </tr>`);
+  if (t.seed === RULES.playoffSpots && played.length > RULES.playoffSpots)
+    rows.push(`<tr class="cut"><td colspan="7"><div class="cutline"><span>Playoff line</span></div></td></tr>`);
+});
+if (waiting.length){
+  rows.push(`<tr class="cut"><td colspan="7"><div class="cutline yet"><span>Yet to play</span></div></td></tr>`);
+  waiting.forEach((t) => rows.push(`<tr class="yet">
+    <td class="pos l">–</td>
+    <td class="l"><div class="team">${esc(t.name)} ${baseTags(t)}</div><div class="players">${t.players.map(esc).join(" · ")}</div></td>
+    <td class="num"><span class="rounds">${dots(0)}</span></td>
+    <td class="hide-s num">–</td>
+    <td class="hide-s num">${hcpTxt(t.hcp)}</td>
+    <td class="num"><span class="net">–</span></td>
+    <td class="hide-m num"></td>
+  </tr>`));
+}
+$("standings").innerHTML = rows.join("") || `<tr><td colspan="7" class="empty">No teams yet.</td></tr>`;
+const upd = new Date(DATA.updated);
+$("updated").textContent = "Updated " + upd.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+/* ---------- Status ---------- */
+const days = Math.ceil((RULES.qualifyingCloses - now) / 864e5);
+let ph;
+if (now < RULES.qualifyingCloses) ph = ["Qualifying open", days <= 1 ? "Closes today" : `${days} days left`, "Closes Sun Nov 29 · Thanksgiving week: check Z Center hours", ""];
+else if (now < RULES.playoffsStart) ph = ["Qualifying closed", "Seeds locked", "Wildcards start the week of Nov 30", ""];
+else if (now < RULES.finalWeek) ph = ["Playoffs", "Wildcards & semis", "8–10 PM @ Z Center", ""];
+else ph = ["Final week", "The Final", "Course chosen by audience vote", " final"];
+const rounds = played.reduce((n, t) => n + t.rounds.filter(r => r.counted).length, 0);
+const lead = played[0];
+$("status").innerHTML = `
+  <div class="stat phase${ph[3]}"><div class="lbl">${ph[0]}</div><div class="val">${ph[1]}</div><div class="sub">${ph[2]}</div></div>
+  <div class="stat t"><div class="lbl">Teams</div><div class="val num">${DATA.teams.length}</div><div class="sub">${played.length} on the board</div></div>
+  <div class="stat rd"><div class="lbl">Rounds</div><div class="val num">${rounds}</div><div class="sub">posted</div></div>
+  <div class="stat ln"><div class="lbl">Low net</div><div class="val num">${lead ? fmt(lead.net) : "–"}</div><div class="sub">${lead ? esc(lead.name) : "No rounds yet"}</div></div>`;
+
+/* ---------- Sign-up deadline ---------- */
+const signupOpen = now <= RULES.signupCloses;
+$("topbar").hidden = !signupOpen;
+$("badge").hidden = !signupOpen;
+
+/* ---------- Bracket ---------- */
+const res = {}; (DATA.playoffs || []).forEach(p => res[p.match] = p);   // match: W1, W2, SF1, SF2, F
+const seed = (n) => played[n - 1] ? { name: played[n - 1].name, seed: n } : null;
+const winnerOf = (code, a, b) => {
+  const w = res[code]?.winner; if (!w) return null;
+  return [a, b].find(x => x && key(x.name) === key(w)) || { name: w, seed: null };
+};
+const side = (s, w, ph) => {
+  if (!s) return `<div class="side tbd"><span class="sd"></span><span class="nm">${esc(ph)}</span></div>`;
+  const c = w ? (key(w.name) === key(s.name) ? " win" : " lose") : "";
+  return `<div class="side${c}"><span class="sd">${s.seed ? "#" + s.seed : ""}</span><span class="nm">${esc(s.name)}${isOfficers(s) ? ' <span class="tag wanted">Wanted</span>' : ""}</span></div>`;
+};
+const card = (code, label, a, b, phA, phB, extra, cls) => {
+  const w = winnerOf(code, a, b), r = res[code] || {};
+  const info = [r.score, r.course ? "Course: " + r.course : extra, r.date].filter(Boolean).map(esc).join(" · ");
+  return { w, html: `<div class="match ${cls}"><div class="mh">${label}</div>${side(a, w, phA)}${side(b, w, phB)}<div class="ms">${info}</div></div>` };
+};
+const m1 = card("W1", "Match 1", seed(3), seed(6), "Seed #3", "Seed #6", "Course: #3 seed's pick", "w");
+const m2 = card("W2", "Match 2", seed(4), seed(5), "Seed #4", "Seed #5", "Course: #4 seed's pick", "w");
+const sf1 = card("SF1", "Semifinal 1", seed(1), m1.w, "Seed #1", "Match 1 winner", "Course TBA", "s");
+const sf2 = card("SF2", "Semifinal 2", seed(2), m2.w, "Seed #2", "Match 2 winner", "Course TBA", "s");
+const f = card("F", "The Final", sf1.w, sf2.w, "Semifinal 1 winner", "Semifinal 2 winner", "Course chosen by audience vote", "final");
+const TROPHY = `<svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><path d="M13 6h18v9a9 9 0 0 1-18 0z" fill="#f2c14e"/><path d="M13 9H7v3a7 7 0 0 0 7 7M31 9h6v3a7 7 0 0 1-7 7" stroke="#f2c14e" stroke-width="2.5" fill="none"/><rect x="20" y="23" width="4" height="8" fill="#c9952a"/><rect x="14" y="31" width="16" height="5" rx="1.5" fill="#f2c14e"/></svg>`;
+$("bracket").innerHTML = `
+  <div><div class="col-h r">Wildcards · week of Nov 30</div><div class="col">${m1.html}${m2.html}</div></div>
+  <div><div class="col-h g">Semifinals</div><div class="col">${sf1.html}${sf2.html}</div></div>
+  <div><div class="trophy">${TROPHY}</div><div class="col-h y">Championship · week of Dec 7</div><div class="col">${f.html}
+    ${f.w ? `<div class="champ"><small>Champions</small>${esc(f.w.name)}</div>` : ""}</div></div>`;
+$("bracketMeta").textContent = now >= RULES.qualifyingCloses ? "Seeds locked" : (played.length ? "Projected — if qualifying ended now" : "");
+
+/* ---------- Latest rounds ---------- */
+function isRecent(d){ return (now - d) < 2 * 864e5; }
+function ago(d){
+  const s = (now - d) / 1000;
+  if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
+  if (s < 86400) return Math.round(s / 3600) + "h ago";
+  if (s < 86400 * 7) return Math.round(s / 86400) + "d ago";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+const feed = [];
+for (const t of teams.values()) for (const r of t.rounds) feed.push({ t, r });
+feed.sort((a, b) => b.r.at - a.r.at);
+$("feed").innerHTML = feed.slice(0, 6).map(({ t, r }) =>
+  `<li><span>${isRecent(r.at) ? '<span class="tag new">New</span> ' : ""}<b>${esc(t.name)}</b> shot ${fmt(r.gross)}${t.hcp != null ? ` <span class="nt">(net ${fmt(r1(r.gross - t.hcp))})</span>` : ""}${!r.counted ? ' <span class="tag warn">not counted</span>' : ""}</span><span class="when">${ago(r.at)}</span></li>`
+).join("") || `<li><span>No rounds posted yet.</span></li>`;
+/* ---------- Handicap explainer + calculator ---------- */
+const ALLOW = DATA.allowances;
+$("allowRows").innerHTML = Object.entries(ALLOW).map(([n, pcts]) =>
+  `<tr><td class="l"><b>${n} players</b></td>${[0,1,2,3,4,5].map(i => `<td class="num">${pcts[i] != null ? pcts[i] + "%" : "–"}</td>`).join("")}</tr>`).join("");
+const EXAMPLE = [10, 14, 18, 22];
+$("calcInputs").innerHTML = [0,1,2,3,4,5].map(i => `<label for="hcp${i+1}"><span>Player ${i+1}</span>
+  <input id="hcp${i+1}" type="number" inputmode="decimal" step="0.1" min="-10" max="54" placeholder="–" value="${EXAMPLE[i] ?? ""}"></label>`).join("");
+function calc(){
+  const vals = [0,1,2,3,4,5].map(i => $("hcp" + (i+1)).value.trim()).filter(v => v !== "").map(Number).filter(v => isFinite(v));
+  const pct = ALLOW[vals.length];
+  if (!pct){
+    $("calcOut").innerHTML = `<div class="tot tbd">TBD</div><div class="why">${vals.length} player${vals.length === 1 ? "" : "s"} entered. Team handicaps need 4–6 players.</div>`;
+    return;
+  }
+  const sorted = vals.slice().sort((a, b) => a - b);
+  const parts = sorted.map((h, i) => ({ h, p: pct[i], v: h * pct[i] / 100 }));
+  const total = parts.reduce((s, x) => s + x.v, 0);
+  $("calcOut").innerHTML = `<ol class="steps">${parts.map(x => `<li><span>${x.h} × ${x.p}%</span><span class="num">${x.v.toFixed(2)}</span></li>`).join("")}</ol>
+    <div class="totrow"><span>Team handicap</span><span class="tot">${(Math.round(total * 10) / 10).toFixed(1)}</span></div>`;
+}
+$("calcInputs").addEventListener("input", calc);
+calc();
+$("copyEmail").addEventListener("click", () => {
+  const done = () => { $("copyEmail").textContent = "Copied"; setTimeout(() => $("copyEmail").textContent = "Copy email", 2000); };
+  const select = () => { const r = document.createRange(); r.selectNodeContents($("email")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
+  try { navigator.clipboard.writeText("hoconnor@mit.edu").then(done, select); } catch (e) { select(); }
+});
+}
+
+Promise.all(["data/teams.json", "data/scores.json"].map(f => fetch(f + "?v=" + Date.now()).then(r => {
+  if (!r.ok) throw new Error(f + ": HTTP " + r.status); return r.json();
+}))).then(([teams, scores]) => {
+  DATA = { ...teams, scores: scores.rows || [], updated: scores.updated || teams.updated };
+  render();
+}).catch(err => {
+  console.error(err);
+  document.getElementById("standings").innerHTML = `<tr><td colspan="7" class="empty">The league table couldn't load. Refresh the page to try again.</td></tr>`;
+});
+</script>
+</body>
+</html>
