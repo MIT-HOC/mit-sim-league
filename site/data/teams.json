@@ -74,9 +74,10 @@
    "players": [
     "Nicholas Casetti",
     "Jordan Liles",
-    "Alex Stoneman"
+    "Alex Stoneman",
+    "Zhifei Li"
    ],
-   "hcp": null
+   "hcp": 7.3
   },
   {
    "name": "big back no big brain",
@@ -93,9 +94,10 @@
    "players": [
     "Anthony Dutruy",
     "Maximilian Hauser",
-    "Alexandre Kiss"
+    "Alexandre Kiss",
+    "Hamza Maksumic"
    ],
-   "hcp": null
+   "hcp": 6.3
   },
   {
    "name": "Latin mafia 27",
@@ -132,12 +134,44 @@
   {
    "name": "MIT Golf Officers",
    "players": [
-    "Hugh",
-    "Zane",
-    "Nishant",
-    "Eric"
+    "Hugh O'Connor",
+    "Zane Schemmer",
+    "Nishant Lahiri",
+    "Eric Roy"
    ],
    "hcp": 1.4
+  },
+  {
+   "name": "HSTeed up",
+   "players": [
+    "Walker Rickord",
+    "Harshit Bhasin",
+    "Torbjørn Solvang Kringeland",
+    "Ligen Peng"
+   ],
+   "hcp": 7.4
+  },
+  {
+   "name": "Infinite Fairways",
+   "players": [
+    "Isaiah Villarreal",
+    "Hailin Truman",
+    "Richard Jin",
+    "Michael Pansieri",
+    "Collin Lung"
+   ],
+   "hcp": 6.8
+  },
+  {
+   "name": "Smoot Operators",
+   "players": [
+    "Alexander Brown",
+    "Sean Fayfar",
+    "Knut Opland Moen",
+    "Manuel Tsoukatos",
+    "Abdullah Alsharhan"
+   ],
+   "hcp": 6.4
   }
  ]
 }
