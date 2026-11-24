@@ -432,13 +432,13 @@ const dots = (n) => Array.from({ length: RULES.maxRounds }, (_, k) => `<span cla
 const rows = [];
 played.forEach((t) => {
   const cls = t.seed <= RULES.byes ? "bye" : t.seed <= RULES.playoffSpots ? "wc" : "";
-  const fresh = isRecent(t.rounds[t.rounds.length - 1].at);
+  const fresh = t.rounds.some(r => r.counted && isRecent(r.at));
   const tags = [
     fresh ? `<span class="tag new">New</span>` : "",
     cls === "bye" ? `<span class="tag bye">Bye to semis</span>` : cls === "wc" ? `<span class="tag wc">Wildcard</span>` : "",
     baseTags(t),
   ].join(" ");
-  const roundsTxt = t.rounds.map(r => `<span class="${!r.counted ? "r-x" : r.best ? "r-best" : "r-off"}">${fmt(r.gross)}</span>`).join(" · ");
+  const roundsTxt = t.rounds.filter(r => r.counted).map(r => `<span class="${r.best ? "r-best" : "r-off"}">${fmt(r.gross)}</span>`).join(" · ");
   const tp = r1(t.net - DATA.par);
   rows.push(`<tr class="${cls}">
     <td class="pos l">${esc(t.pos)}</td>
@@ -528,10 +528,10 @@ function ago(d){
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 const feed = [];
-for (const t of teams.values()) for (const r of t.rounds) feed.push({ t, r });
+for (const t of teams.values()) for (const r of t.rounds) if (r.counted) feed.push({ t, r });   // extra rounds past the limit are left off
 feed.sort((a, b) => b.r.at - a.r.at);
 $("feed").innerHTML = feed.slice(0, 6).map(({ t, r }) =>
-  `<li><span>${isRecent(r.at) ? '<span class="tag new">New</span> ' : ""}<b>${esc(t.name)}</b> shot ${fmt(r.gross)}${t.hcp != null ? ` <span class="nt">(net ${fmt(r1(r.gross - t.hcp))})</span>` : ""}${!r.counted ? ' <span class="tag warn">not counted</span>' : ""}</span><span class="when">${ago(r.at)}</span></li>`
+  `<li><span>${isRecent(r.at) ? '<span class="tag new">New</span> ' : ""}<b>${esc(t.name)}</b> shot ${fmt(r.gross)}${t.hcp != null ? ` <span class="nt">(net ${fmt(r1(r.gross - t.hcp))})</span>` : ""}</span><span class="when">${ago(r.at)}</span></li>`
 ).join("") || `<li><span>No rounds posted yet.</span></li>`;
 /* ---------- Handicap explainer + calculator ---------- */
 const ALLOW = DATA.allowances;
