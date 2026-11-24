@@ -23,7 +23,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Copy new rounds from the score form
         env:
@@ -41,8 +41,23 @@ jobs:
           fi
 
       - uses: actions/configure-pages@v5
+      # A unique name per attempt, so "Re-run jobs" doesn't find two copies of the site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
+          name: github-pages-${{ github.run_attempt }}
       - id: deploy
         uses: actions/deploy-pages@v4
+        continue-on-error: true      # GitHub's Pages service sometimes has a blip; try once more below
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+
+      - name: Wait before retrying
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+
+      - id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
